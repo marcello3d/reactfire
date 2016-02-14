@@ -89,27 +89,6 @@ describe('ReactFire', function() {
       shallowRenderer.render(React.createElement(TestComponent));
     });
 
-    it('throws error given an already bound bind variable', function() {
-      var TestComponent = React.createClass({
-        mixins: [ReactFireMixin],
-
-        componentWillMount: function() {
-          var _this = this;
-
-          expect(function() {
-            _this.bindAsArray(firebaseRef, 'items');
-            _this.bindAsArray(firebaseRef, 'items');
-          }).to.throw('this.state.items is already bound to a Firebase reference');
-        },
-
-        render: function() {
-          return React.DOM.div(null);
-        }
-      });
-
-      shallowRenderer.render(React.createElement(TestComponent));
-    });
-
     it('binds array records which are objects', function(done) {
       var TestComponent = React.createClass({
         mixins: [ReactFireMixin],
@@ -196,7 +175,7 @@ describe('ReactFire', function() {
       shallowRenderer.render(React.createElement(TestComponent));
     });
 
-    it('binds as an empty array for Firebase references with no data', function(done) {
+    it('binds an empty array value for empty Firebase references', function(done) {
       var TestComponent = React.createClass({
         mixins: [ReactFireMixin],
 
@@ -204,7 +183,7 @@ describe('ReactFire', function() {
           this.bindAsArray(firebaseRef, 'items');
 
           firebaseRef.set(null, function() {
-            expect(this.state.items).to.deep.equal([]);
+            expect(this.state.items).to.deep.equal(null);
 
             done();
           }.bind(this));
@@ -377,6 +356,43 @@ describe('ReactFire', function() {
               { '.key': '2', '.value': 'third' }
             ]);
 
+            done();
+          }.bind(this));
+        },
+
+        render: function() {
+          return React.DOM.div(null);
+        }
+      });
+
+      shallowRenderer.render(React.createElement(TestComponent));
+    });
+
+
+    it('binds to the same variable multiple times', function(done) {
+      var TestComponent = React.createClass({
+        mixins: [ReactFireMixin],
+
+        componentWillMount: function() {
+          this.bindAsArray(firebaseRef, 'items');
+          this.bindAsArray(firebaseRef, 'items');
+
+          firebaseRef.set({
+            first: { index: 0 },
+            second: { index: 1 },
+            third: { index: 2 }
+          }, function() {
+            expect(this.state.items).to.deep.equal([
+              { '.key': 'first', index: 0 },
+              { '.key': 'second', index: 1 },
+              { '.key': 'third', index: 2 }
+            ]);
+            this.bindAsArray(firebaseRef, 'items');
+            expect(this.state.items).to.deep.equal([
+              { '.key': 'first', index: 0 },
+              { '.key': 'second', index: 1 },
+              { '.key': 'third', index: 2 }
+            ]);
             done();
           }.bind(this));
         },
@@ -698,27 +714,6 @@ describe('ReactFire', function() {
       shallowRenderer.render(React.createElement(TestComponent));
     });
 
-    it('throws error given an already bound bind variable', function() {
-      var TestComponent = React.createClass({
-        mixins: [ReactFireMixin],
-
-        componentWillMount: function() {
-          var _this = this;
-
-          expect(function() {
-            _this.bindAsObject(firebaseRef, 'items');
-            _this.bindAsObject(firebaseRef, 'items');
-          }).to.throw('this.state.items is already bound to a Firebase reference');
-        },
-
-        render: function() {
-          return React.DOM.div(null);
-        }
-      });
-
-      shallowRenderer.render(React.createElement(TestComponent));
-    });
-
     it('binds to an object', function(done) {
       var TestComponent = React.createClass({
         mixins: [ReactFireMixin],
@@ -899,6 +894,39 @@ describe('ReactFire', function() {
       shallowRenderer.render(React.createElement(TestComponent));
     });
 
+
+    it('binds to an object multiple times', function(done) {
+      var TestComponent = React.createClass({
+        mixins: [ReactFireMixin],
+
+        componentWillMount: function() {
+          this.bindAsObject(firebaseRef.child('items'), 'items');
+          this.bindAsObject(firebaseRef.child('items'), 'items');
+
+          var obj = {
+            first: { index: 0 },
+            second: { index: 1 },
+            third: { index: 2 }
+          };
+
+          firebaseRef.child('items').set(obj, function() {
+            obj['.key'] = 'items';
+            expect(this.state.items).to.deep.equal(obj);
+
+            this.bindAsObject(firebaseRef.child('items'), 'items');
+
+            expect(this.state.items).to.deep.equal(obj);
+            done();
+          }.bind(this));
+        },
+
+        render: function() {
+          return React.DOM.div(null);
+        }
+      });
+
+      shallowRenderer.render(React.createElement(TestComponent));
+    });
     it('binds a mixture of arrays and objects to state variables at the same time', function(done) {
       var TestComponent = React.createClass({
         mixins: [ReactFireMixin],

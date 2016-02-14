@@ -126,6 +126,22 @@
   /*****************************/
   /*  BIND AS ARRAY LISTENERS  */
   /*****************************/
+
+  function _getCurrentArray(bindVar) {
+    var array = this.data[bindVar];
+    if (!array) {
+      array = this.data[bindVar] = [];
+    }
+    return array;
+  }
+
+  function _arrayValue(bindVar, snapshot) {
+    if (snapshot.numChildren() > 0) {
+      _getCurrentArray.call(this, bindVar);
+      this.setState(this.data);
+    }
+  }
+
   /**
    * 'child_added' listener which adds a new record to the bound array.
    *
@@ -137,7 +153,7 @@
   function _arrayChildAdded(bindVar, snapshot, previousChildKey) {
     var key = snapshot.key();
     var value = snapshot.val();
-    var array = this.data[bindVar];
+    var array = _getCurrentArray.call(this, bindVar);
 
     // Determine where to insert the new record
     var insertionIndex;
@@ -162,7 +178,7 @@
    * @param {Firebase.DataSnapshot} snapshot A snapshot of the bound data.
    */
   function _arrayChildRemoved(bindVar, snapshot) {
-    var array = this.data[bindVar];
+    var array = _getCurrentArray.call(this, bindVar);
 
     // Look up the record's index in the array
     var index = _indexForKey(array, snapshot.key());
@@ -183,7 +199,7 @@
   function _arrayChildChanged(bindVar, snapshot) {
     var key = snapshot.key();
     var value = snapshot.val();
-    var array = this.data[bindVar];
+    var array = _getCurrentArray.call(this, bindVar);
 
     // Look up the record's index in the array
     var index = _indexForKey(array, key);
@@ -205,7 +221,7 @@
    */
   function _arrayChildMoved(bindVar, snapshot, previousChildKey) {
     var key = snapshot.key();
-    var array = this.data[bindVar];
+    var array = _getCurrentArray.call(this, bindVar);
 
     // Look up the record's index in the array
     var currentIndex = _indexForKey(array, key);
@@ -229,6 +245,18 @@
     this.setState(this.data);
   }
 
+  function _removeListeners(bindVar) {
+    // Turn off all Firebase listeners
+    for (var event in this.firebaseListeners[bindVar]) {
+      /* istanbul ignore else */
+      if (this.firebaseListeners[bindVar].hasOwnProperty(event)) {
+        var offListener = this.firebaseListeners[bindVar][event];
+        this.firebaseRefs[bindVar].off(event, offListener);
+      }
+    }
+    delete this.firebaseRefs[bindVar];
+    delete this.firebaseListeners[bindVar];
+  }
 
   /*************/
   /*  BINDING  */
@@ -249,20 +277,29 @@
 
     _validateBindVar(bindVar);
 
-    if (typeof this.firebaseRefs[bindVar] !== 'undefined') {
-      _throwError('this.state.' + bindVar + ' is already bound to a Firebase reference');
+    if (this.firebaseRefs[bindVar] &&
+      firebaseRef.toString() === this.firebaseRefs[bindVar].toString() &&
+      (bindAsArray === ('child_added' in this.firebaseListeners[bindVar]))
+    ) {
+      // Rebinding to same point, do nothing
+      return;
     }
+
+    _removeListeners.call(this, bindVar);
 
     // Keep track of the Firebase reference we are setting up listeners on
     this.firebaseRefs[bindVar] = firebaseRef.ref();
 
     if (bindAsArray) {
-      // Set initial state to an empty array
-      this.data[bindVar] = [];
+      // Set initial state to null
+      this.data[bindVar] = null;
       this.setState(this.data);
 
       // Add listeners for all 'child_*' events
+      var boundArrayValue = _arrayValue.bind(this, bindVar);
+      firebaseRef.once('value', boundArrayValue, cancelCallback);
       this.firebaseListeners[bindVar] = {
+        value: boundArrayValue,
         child_added: firebaseRef.on('child_added', _arrayChildAdded.bind(this, bindVar), cancelCallback),
         child_removed: firebaseRef.on('child_removed', _arrayChildRemoved.bind(this, bindVar), cancelCallback),
         child_changed: firebaseRef.on('child_changed', _arrayChildChanged.bind(this, bindVar), cancelCallback),
@@ -343,16 +380,7 @@
         _throwError('this.state.' + bindVar + ' is not bound to a Firebase reference');
       }
 
-      // Turn off all Firebase listeners
-      for (var event in this.firebaseListeners[bindVar]) {
-        /* istanbul ignore else */
-        if (this.firebaseListeners[bindVar].hasOwnProperty(event)) {
-          var offListener = this.firebaseListeners[bindVar][event];
-          this.firebaseRefs[bindVar].off(event, offListener);
-        }
-      }
-      delete this.firebaseRefs[bindVar];
-      delete this.firebaseListeners[bindVar];
+      _removeListeners.call(this, bindVar);
 
       // Update state
       var newState = {};
