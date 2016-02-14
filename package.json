@@ -1,15 +1,15 @@
 {
-  "name": "reactfire",
+  "name": "marcello-reactfire",
   "description": "Firebase mixin for ReactJS",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "author": "Firebase <support@firebase.com> (https://www.firebase.com/)",
-  "homepage": "https://github.com/firebase/reactfire/",
+  "homepage": "https://github.com/marcello3d/reactfire/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/firebase/reactfire.git"
+    "url": "https://github.com/marcello3d/reactfire.git"
   },
   "bugs": {
-    "url": "https://github.com/firebase/reactfire/issues"
+    "url": "https://github.com/marcello3d/reactfire/issues"
   },
   "license": "MIT",
   "keywords": [
@@ -28,7 +28,6 @@
   ],
   "dependencies": {},
   "peerDependencies": {
-    "react": "0.13.x || 0.14.x",
     "firebase": "2.x.x"
   },
   "devDependencies": {
@@ -52,6 +51,7 @@
   },
   "scripts": {
     "test": "gulp test",
+    "watch": "gulp watch",
     "travis": "gulp"
   }
 }
