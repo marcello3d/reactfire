@@ -183,7 +183,7 @@ describe('ReactFire', function() {
           this.bindAsArray(firebaseRef, 'items');
 
           firebaseRef.set(null, function() {
-            expect(this.state.items).to.deep.equal(null);
+            expect(this.state.items).to.deep.equal([]);
 
             done();
           }.bind(this));

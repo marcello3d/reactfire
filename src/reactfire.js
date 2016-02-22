@@ -135,11 +135,14 @@
     return array;
   }
 
-  function _arrayValue(bindVar, snapshot) {
-    if (snapshot.numChildren() > 0) {
-      _getCurrentArray.call(this, bindVar);
-      this.setState(this.data);
-    }
+  function _arrayValue(bindVar) {
+    _getCurrentArray.call(this, bindVar);
+    this.setState(this.data);
+
+    // Remove listener since we only need it once
+    var listeners = this.firebaseListeners[bindVar];
+    this.firebaseRefs[bindVar].off('value', listeners.value);
+    delete listeners.value;
   }
 
   /**
@@ -296,10 +299,8 @@
       this.setState(this.data);
 
       // Add listeners for all 'child_*' events
-      var boundArrayValue = _arrayValue.bind(this, bindVar);
-      firebaseRef.once('value', boundArrayValue, cancelCallback);
       this.firebaseListeners[bindVar] = {
-        value: boundArrayValue,
+        value: firebaseRef.on('value', _arrayValue.bind(this, bindVar), cancelCallback),
         child_added: firebaseRef.on('child_added', _arrayChildAdded.bind(this, bindVar), cancelCallback),
         child_removed: firebaseRef.on('child_removed', _arrayChildRemoved.bind(this, bindVar), cancelCallback),
         child_changed: firebaseRef.on('child_changed', _arrayChildChanged.bind(this, bindVar), cancelCallback),
