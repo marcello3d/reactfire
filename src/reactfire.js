@@ -141,8 +141,10 @@
 
     // Remove listener since we only need it once
     var listeners = this.firebaseListeners[bindVar];
-    this.firebaseRefs[bindVar].off('value', listeners.value);
-    delete listeners.value;
+    if (listeners) {
+      this.firebaseRefs[bindVar].off('value', listeners.value);
+      delete listeners.value;
+    }
   }
 
   /**
@@ -294,9 +296,11 @@
     this.firebaseRefs[bindVar] = firebaseRef.ref();
 
     if (bindAsArray) {
-      // Set initial state to null
-      this.data[bindVar] = null;
-      this.setState(this.data);
+      // Set initial state to null (unless already set)
+      if (!this.state[bindVar]) {
+        this.data[bindVar] = null;
+        this.setState(this.data);
+      }
 
       // Add listeners for all 'child_*' events
       this.firebaseListeners[bindVar] = {
