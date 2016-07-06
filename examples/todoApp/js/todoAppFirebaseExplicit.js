@@ -1,4 +1,3 @@
-/** @jsx React.DOM */
 var TodoList2 = React.createClass({
   render: function() {
     var _this = this;
@@ -26,12 +25,12 @@ var TodoApp2 = React.createClass({
   },
 
   componentWillMount: function() {
-    this.firebaseRef = new Firebase('https://ReactFireTodoApp.firebaseio.com/items/');
+    this.firebaseRef = firebase.database().ref('todoApp/items');
     this.firebaseRef.limitToLast(25).on('value', function(dataSnapshot) {
       var items = [];
       dataSnapshot.forEach(function(childSnapshot) {
         var item = childSnapshot.val();
-        item['.key'] = childSnapshot.key();
+        item['.key'] = childSnapshot.key;
         items.push(item);
       }.bind(this));
 
@@ -50,7 +49,7 @@ var TodoApp2 = React.createClass({
   },
 
   removeItem: function(key) {
-    var firebaseRef = new Firebase('https://ReactFireTodoApp.firebaseio.com/items/');
+    var firebaseRef = firebase.database().ref('todoApp/items');;
     firebaseRef.child(key).remove();
   },
 
@@ -79,4 +78,4 @@ var TodoApp2 = React.createClass({
   }
 });
 
-React.render(<TodoApp2 />, document.getElementById('todoApp2'));
+ReactDOM.render(<TodoApp2 />, document.getElementById('todoApp2'));

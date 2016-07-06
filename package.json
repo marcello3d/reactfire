@@ -28,12 +28,13 @@
   ],
   "dependencies": {},
   "peerDependencies": {
-    "firebase": "2.x.x"
+    "react": "0.13.x || 0.14.x || 15.x.x",
+    "firebase": "2.x.x || 3.x.x"
   },
   "devDependencies": {
     "chai": "^3.0.0",
     "coveralls": "^2.11.2",
-    "firebase": "2.x.x",
+    "firebase": "3.x.x",
     "gulp": "^3.9.0",
     "gulp-cli": "1.2.1",
     "gulp-eslint": "^0.15.0",
@@ -43,9 +44,9 @@
     "gulp-mocha": "^2.1.2",
     "gulp-uglify": "^1.2.0",
     "jsdom": "3.x.x",
-    "react": "0.14.x",
-    "react-addons-test-utils": "0.14.x",
-    "react-dom": "0.14.x",
+    "react": "15.x.x",
+    "react-addons-test-utils": "15.x.x",
+    "react-dom": "15.x.x",
     "run-sequence": "^1.1.1",
     "sinon": "^1.15.4",
     "sinon-chai": "^2.8.0"
